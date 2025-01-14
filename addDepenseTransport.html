@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter une dépense - Alimentation</title>
+</head>
+<body>
+    <style>
+        body {
+            background-color: rgba(224, 23, 181, 0.858);
+            color: white;
+            text-align: center;
+        }
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            background-color: white;
+            color: rgba(224, 23, 181, 0.858);
+            padding: 10px;
+            margin: 5px 20%;
+            border-radius: 10px;
+        }
+        button {
+            color: rgba(224, 23, 181, 0.858);
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #editExpenseForm {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+
+    <h1>Ajouter une dépense - Alimentation</h1>
+
+    <!-- Formulaire pour ajouter une nouvelle dépense -->
+    <form id="addExpenseForm">
+        <input type="text" id="expenseDescription" placeholder="Description de la dépense" required>
+        <input type="number" id="expenseAmount" placeholder="Montant" required>
+        <button type="submit">Ajouter</button>
+    </form>
+
+    <!-- Formulaire pour modifier une dépense existante -->
+    <form id="editExpenseForm">
+        <input type="hidden" id="editExpenseId">
+        <input type="text" id="editExpenseDescription" placeholder="Description de la dépense" required>
+        <input type="number" id="editExpenseAmount" placeholder="Montant" required>
+        <button type="submit">Enregistrer les modifications</button>
+        <button type="button" onclick="cancelEdit()">Annuler</button>
+    </form>
+
+    <h2>Dépenses existantes</h2>
+    <div id="expensesList"></div>
+
+    <button onclick="window.location.href='principal.html';">Retour</button>
+
+    <script>
+        const category = 'Transport'; // Catégorie pour cette page
+        const expensesList = document.getElementById('expensesList');
+        const editExpenseForm = document.getElementById('editExpenseForm');
+        const editExpenseId = document.getElementById('editExpenseId');
+        const editExpenseDescription = document.getElementById('editExpenseDescription');
+        const editExpenseAmount = document.getElementById('editExpenseAmount');
+
+        // Récupérer les dépenses depuis localStorage
+        const getExpenses = () => JSON.parse(localStorage.getItem('expenses') || '[]');
+
+        // Sauvegarder les dépenses dans localStorage
+        const saveExpenses = (expenses) => localStorage.setItem('expenses', JSON.stringify(expenses));
+
+        // Charger les dépenses par catégorie
+        const fetchExpenses = () => {
+            const expenses = getExpenses().filter(exp => exp.category === category);
+            displayExpenses(expenses);
+        };
+
+        // Afficher les dépenses dans l'interface
+        const displayExpenses = (expenses) => {
+            expensesList.innerHTML = expenses.map(exp => `
+                <div class="expense-item">
+                    <span>${exp.description} - ${exp.amount} MAD</span>
+                    <button onclick="editExpense(${exp.id})">Modifier</button>
+                    <button onclick="deleteExpense(${exp.id})">Supprimer</button>
+                </div>
+            `).join('');
+        };
+
+        // Ajouter une dépense
+        document.getElementById('addExpenseForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const description = document.getElementById('expenseDescription').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+
+            const expenses = getExpenses();
+            const newExpense = {
+                id: Date.now(),
+                description,
+                amount,
+                category,
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            expenses.push(newExpense);
+            saveExpenses(expenses);
+
+            fetchExpenses(); // Rafraîchir la liste des dépenses
+            updatePrincipalPage(); // Mettre à jour la page principale
+
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+        });
+
+        // Supprimer une dépense
+        const deleteExpense = (id) => {
+            const expenses = getExpenses().filter(exp => exp.id !== id);
+            saveExpenses(expenses);
+
+            fetchExpenses(); // Rafraîchir la liste des dépenses
+            updatePrincipalPage(); // Mettre à jour la page principale
+        };
+
+        // Modifier une dépense
+        const editExpense = (id) => {
+            const expenses = getExpenses();
+            const expenseToEdit = expenses.find(exp => exp.id === id);
+
+            // Pré-remplir le formulaire de modification
+            editExpenseId.value = expenseToEdit.id;
+            editExpenseDescription.value = expenseToEdit.description;
+            editExpenseAmount.value = expenseToEdit.amount;
+
+            editExpenseForm.style.display = 'block';
+        };
+
+        // Enregistrer les modifications
+        editExpenseForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const id = parseInt(editExpenseId.value);
+            const description = editExpenseDescription.value;
+            const amount = parseFloat(editExpenseAmount.value);
+
+            const expenses = getExpenses();
+            const expenseIndex = expenses.findIndex(exp => exp.id === id);
+
+            // Mettre à jour la dépense
+            expenses[expenseIndex].description = description;
+            expenses[expenseIndex].amount = amount;
+
+            saveExpenses(expenses);
+
+            fetchExpenses(); // Rafraîchir la liste des dépenses
+            updatePrincipalPage(); // Mettre à jour la page principale
+
+            editExpenseForm.style.display = 'none';
+        });
+
+        // Annuler la modification
+        const cancelEdit = () => {
+            editExpenseForm.style.display = 'none';
+        };
+
+        // Mettre à jour la page principale via localStorage
+        const updatePrincipalPage = () => {
+            localStorage.setItem('updateGraph', 'true');
+        };
+
+        // Initialisation
+        fetchExpenses();
+    </script>
+</body>
+</html>

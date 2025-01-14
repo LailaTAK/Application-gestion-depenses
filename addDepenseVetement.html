@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter une dépense - [Catégorie]</title>
+</head>
+<body>
+    <style>
+        body {
+            background-color: rgba(224, 23, 181, 0.858);
+            color: white;
+            text-align: center;
+        }
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            background-color: white;
+            color: rgba(224, 23, 181, 0.858);
+            padding: 10px;
+            margin: 5px 20%;
+            border-radius: 10px;
+        }
+        button {
+            color: rgba(224, 23, 181, 0.858);
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+
+    <h1>Ajouter une dépense - [Catégorie]</h1>
+
+    <form id="addExpenseForm">
+        <input type="text" id="expenseDescription" placeholder="Description de la dépense" required>
+        <input type="number" id="expenseAmount" placeholder="Montant" required>
+        <button type="submit">Ajouter</button>
+    </form>
+
+    <h2>Dépenses existantes</h2>
+    <div id="expensesList"></div>
+
+    <button onclick="window.location.href='principal.html';">Retour</button>
+
+    <script>
+        // Remplacez "[Catégorie]" par le nom de la catégorie pour chaque page
+        const category = "Vêtements"; 
+        const expensesList = document.getElementById('expensesList');
+
+        // Récupérer les dépenses depuis localStorage
+        const getExpenses = () => JSON.parse(localStorage.getItem('expenses') || '[]');
+
+        // Sauvegarder les dépenses dans localStorage
+        const saveExpenses = (expenses) => localStorage.setItem('expenses', JSON.stringify(expenses));
+
+        // Charger les dépenses par catégorie
+        const fetchExpenses = () => {
+            const expenses = getExpenses().filter(exp => exp.category === category);
+            displayExpenses(expenses);
+        };
+
+        // Afficher les dépenses dans l'interface
+        const displayExpenses = (expenses) => {
+            expensesList.innerHTML = expenses.map(exp => `
+                <div class="expense-item">
+                    <span>${exp.description} - ${exp.amount} MAD</span>
+                    <button onclick="deleteExpense(${exp.id})">Supprimer</button>
+                </div>
+            `).join('');
+        };
+
+        // Ajouter une dépense
+        document.getElementById('addExpenseForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const description = document.getElementById('expenseDescription').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+
+            const expenses = getExpenses();
+            const newExpense = {
+                id: Date.now(),
+                description,
+                amount,
+                category,
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            expenses.push(newExpense);
+            saveExpenses(expenses);
+
+            fetchExpenses(); // Rafraîchir la liste des dépenses
+            updatePrincipalPage(); // Mettre à jour la page principale
+
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+        });
+
+        // Supprimer une dépense
+        const deleteExpense = (id) => {
+            const expenses = getExpenses().filter(exp => exp.id !== id);
+            saveExpenses(expenses);
+
+            fetchExpenses(); // Rafraîchir la liste des dépenses
+            updatePrincipalPage(); // Mettre à jour la page principale
+        };
+
+        // Mettre à jour la page principale via localStorage
+        const updatePrincipalPage = () => {
+            localStorage.setItem('updateGraph', 'true');
+        };
+
+        // Initialisation
+        fetchExpenses();
+    </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion</title>
+</head>
+<body>
+    <style>
+        body{
+            background-color: rgba(224, 23, 181, 0.858);
+            color: white;
+            text-align: center ;
+            display: flex;
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+        
+        }
+        form{
+            
+            color: rgba(224, 23, 181, 0.858);
+            background-color: #ffffff;
+            border:solid #ffffff;
+            border-radius: 20px;
+            margin-top:20px;
+            width: 500px;
+            text-align: left;
+        }
+        
+        h2{text-align: center;}
+        input{
+            margin-top:5px;
+            margin-bottom:5px;
+            border:rgba(224, 23, 181, 0.858) solid;
+            border-radius: 20px;
+        }
+        button{
+            width: 100px;
+            height: 50px;
+            text-align: center;
+            color: rgba(224, 23, 181, 0.858);
+            background-color: #FFFFFF;
+            border:solid #FFFFFF;
+            border-radius: 30px;
+            padding: auto;
+        }
+        .submit{
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    display: block;
+    margin: 10px auto;
+}
+        label{
+            margin-left: 20px;
+        }
+        a,footer{
+            margin-top:10px;
+    color: #FFFFFF;
+    text-align: right;}
+    select{
+        border:solid rgba(224, 23, 181, 0.858);
+        border-radius: 20px;
+        color: rgba(224, 23, 181, 0.858)}
+
+        #formulaireInscription {
+            display: none;
+        }
+    </style>
+    <br>
+    <p>Connectez-vous pour accéder à votre compte</p>
+    
+    <form id="loginForm" style="display:none;" >
+        <h2>Connexion</h2>
+        <label>Entrez votre @ email:</label>
+        <input type="email" id="loginEmail" name="email" required><br>
+        <label>Entrez votre mot de passe:</label>
+        <input type="password" id="loginPassword" name="password" required><br>
+        <button  onclick="window.location.href='principal.html';" type="submit" class="submit">Se connecter</button>
+    </form><br>
+    <button id="ouvrirformconex">Se connecter</button>
+
+    <p>Vous n'avez pas de compte?Créez le maintenat</p>
+    <button id="btnInscrire">S'inscrire</button>
+    
+    <form id="registerForm" action="/register" method="POST" style="display:none;" >
+        <h2>Inscription</h2>
+        <label for="full-name">Nom complet :</label>
+        <input type="text" id="full-name" name="full_name" required><br>
+    
+        <label for="email">Adresse e-mail :</label>
+        <input type="email" id="email" name="email" required><br>
+    
+        <label for="username">Nom d’utilisateur :</label>
+        <input type="text" id="username" name="username" required><br>
+    
+        <label for="password">Mot de passe :</label>
+        <input type="password" id="password" name="password" required><br>
+    <label for="confirm-password">Confirmer le mot de passe :</label>
+    <input type="password" id="confirm-password" name="confirm_password" required><br>
+
+    <label for="currency">Devise préférée :</label>
+    <select id="currency" name="currency">
+        <option value="EUR">EUR</option>
+        <option value="USD">USD</option>
+        <option value="MAD">MAD</option>
+    </select><br>
+
+    <label for="budget">Budget :</label>
+    <input type="number" id="budget" name="budget" min="0" required><br>
+
+    
+    <label for="accept-terms">J’accepte les termes et conditions</label>
+    <input type="checkbox" id="accept-terms" name="accept_terms" required>
+    <button class="submit">Submit</button>
+</form><br>
+<footer>
+    <a href=#Help>Besoin d'aide</a>
+</footer>
+<script>
+    const API_BASE_URL = 'http://localhost:3000'; // Remplacez par l'URL de votre serveur backend
+
+
+    // Toggle visibility between forms
+     btnInscrire.addEventListener('click', () => {
+        registerForm.style.display = 'block';
+        loginForm.style.display = 'none';
+    });
+    ouvrirformconex.addEventListener('click', () => {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+    });
+
+    // Formulaire de connexion
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        try {
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert('Connexion réussie !');
+                window.location.href = 'principal.html'; 
+            } else {
+                alert(`Erreur : ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la connexion:', error);
+            alert('Erreur lors de la connexion.');
+        }
+    });
+
+    // Formulaire d'inscription
+    registerForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const full_name = document.getElementById('full-name').value;
+        const email = document.getElementById('email').value;
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const confirm_password = document.getElementById('confirm-password').value;
+        const currency = document.getElementById('currency').value;
+        const budget = document.getElementById('budget').value;
+        const accept_terms = document.getElementById('accept-terms').checked;
+
+        // Verifier la correspondance des mots de passe
+        if (password !== confirm_password) {
+            alert('Les mots de passe ne correspondent pas.');
+            return;
+        }
+
+        if (!accept_terms) {
+            alert('Vous devez accepter les termes et conditions.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    full_name,
+                    email,
+                    username,
+                    password,
+                    currency,
+                    budget,
+                }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert('Inscription réussie !');
+                registerForm.style.display = 'none';
+                loginForm.style.display = 'block';
+            } else {
+                alert(`Erreur : ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Erreur lors de l\'inscription:', error);
+            alert('Erreur lors de l\'inscription.');
+        }
+    });
+
+</script>
+
+</body>
+</html>
